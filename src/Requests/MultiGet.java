@@ -22,7 +22,6 @@ public class MultiGet {
     }
 
     protected Map<String, byte[]> multiGet(DataInputStream in) throws Exception{
-        // int i = this.inputStream.readInt();
         int e = in.readInt();
 
         List<String> keys = new ArrayList<>();
@@ -47,9 +46,11 @@ public class MultiGet {
         });
 
         out.writeInt(messageType);
+        out.writeInt(keys.size());
         this.communication.multiSend(data,out);
 
         int response = in.readInt();
+        System.out.println(response);
         if (response == 0) {
             return new HashMap<>(0);
         }

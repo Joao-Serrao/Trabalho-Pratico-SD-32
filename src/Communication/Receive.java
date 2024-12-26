@@ -4,7 +4,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 public class Receive {
-    protected byte[] receive(DataInputStream in) throws IOException {
+    protected byte[] receive(DataInputStream in) throws Exception {
+        Thread.sleep(20);
         int len = in.readInt();
 
         if (len < 0){

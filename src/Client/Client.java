@@ -13,6 +13,7 @@ import java.util.Set;
 
 public class Client {
     private Socket socket;
+    private int port;
     private DataOutputStream out;
     private DataInputStream in;
     private Integer maxRequests;
@@ -20,10 +21,12 @@ public class Client {
     private Integer paralel = 0;
     private Integer maxParalel;
     private Request request = new Request();
+    public Boolean aut = false;
+    public Boolean reg = false;
 
-    public Client(int address, int mR, int mP) throws Exception{
-        this.socket = new Socket("localhost",address);
-        System.out.println(this.socket.getLocalSocketAddress().toString());
+    public Client(int port, int mR, int mP) throws Exception{
+        this.socket = new Socket("localhost",port);
+        this.port = port;
         this.out = new DataOutputStream(this.socket.getOutputStream());
         this.in = new DataInputStream(this.socket.getInputStream());
         this.maxRequests = mR;
@@ -31,33 +34,69 @@ public class Client {
     }
 
     public Boolean register(String Username, String Pass) throws Exception{
+        if (this.socket.isClosed()) {
+            Socket s = new Socket("localhost", this.port);
+            this.socket = s;
+            this.out = new DataOutputStream(this.socket.getOutputStream());
+            this.in = new DataInputStream(this.socket.getInputStream());
+        }
         return this.request.requestRegister(this.out, this.in, Username, Pass);
     }
 
     public Boolean login(String Username, String Pass) throws Exception{
+        if (this.socket.isClosed()) {
+            Socket s = new Socket("localhost", this.port);
+            this.socket = s;
+            this.out = new DataOutputStream(this.socket.getOutputStream());
+            this.in = new DataInputStream(this.socket.getInputStream());
+        }
         return this.request.requestLogin(this.out, this.in, Username, Pass);
     }
 
     public Boolean put(String Key, byte[] value) throws Exception{
-        return this.request.requestPut(this.out, this.in, Key, value);
+        this.requests += 1;
+        Boolean result = this.request.requestPut(this.out, this.in, Key, value);
+        if (this.requests == this.maxRequests) {
+            this.logout();
+            this.requests = 0;
+        }
+        return result;
     }
 
     public Boolean multiPut(Map<String,byte[]> pairs) throws Exception{
-        return this.request.requestMultiPut(this.out, this.in, pairs);
+        this.requests += 1;
+        Boolean result = this.request.requestMultiPut(this.out, this.in, pairs);
+        if (this.requests == this.maxRequests) {
+            this.logout();
+            this.requests = 0;
+        }
+        return result;
     }
 
     public byte[] get(String key) throws Exception{
-        return this.request.requestGet(this.out, this.in, key);
+        this.requests += 1;
+        byte[] result = this.request.requestGet(this.out, this.in, key);
+        if (this.requests == this.maxRequests) {
+            this.logout();
+        }
+        return result;
+
     }
 
-    public Map<String,byte[]> multGet(Set<String> keys) throws Exception{
-        return this.request.requestMultiGet(this.out, this.in, keys);
+    public Map<String,byte[]> multiGet(Set<String> keys) throws Exception{
+        Map<String, byte[]> result = this.request.requestMultiGet(this.out, this.in, keys);
+        if (this.requests == this.maxRequests) {
+            this.logout();
+            this.requests = 0;
+        }
+        return result;
     }
 
-    public String logout() throws Exception{
+    public void logout() throws Exception{
         while(this.paralel != 0) {
             Thread.sleep(10);
         }
+        this.requests = 0;
         this.out.writeInt(6);
         this.out.flush();
 
@@ -66,87 +105,17 @@ public class Client {
         } catch (EOFException e) {
             this.socket.close();
         }
-        return "End of Connection!";
+        this.aut = false;
     }
 
     public static void main(String[] args) throws Exception {
-        Socket s = new Socket("0.0.0.0", 12345);
-
-        DataOutputStream out = new DataOutputStream(s.getOutputStream());
-        DataInputStream in = new DataInputStream(s.getInputStream());
-
-        out.writeInt(0);
-        String data = "Joao|1234";
-        byte[] b = data.getBytes();
-        out.writeInt(b.length);
-        out.write(b);
-        out.flush();
-
-        out.writeInt(1);
-        out.writeInt(b.length);
-        out.write(b);
-        out.flush();
-
-        out.writeInt(2);
-        data = "Joao";
-        b = data.getBytes();
-        out.writeInt(b.length);
-        out.write(b);
-        data = "12345";
-        b = data.getBytes();
-        out.writeInt(b.length);
-        out.write(b);
-        out.flush();
-
-        out.writeInt(3);
-        data = "Joao";
-        b = data.getBytes();
-        out.writeInt(b.length);
-        out.write(b);
-        out.flush();
-
-        Map<String,byte[]> map = new HashMap<>();
-        map.put("Duarte", "password".getBytes());
-        map.put("Diogo", "burro".getBytes());
-
-        out.writeInt(4);
-        out.writeInt(map.size());
-        map.forEach((key,value) -> {
-            byte[] b1 = key.getBytes();
-            try {
-                out.writeInt(b1.length);
-                out.write(b1);
-                out.writeInt(value.length);
-                out.write(value);
-                out.flush();
-            } catch (IOException e){
-                System.out.println("Error!");
-            }
-        });
-
-        Set<String> keys = Set.of("Joao","Duarte","Diogo");
-
-        out.writeInt(5);
-        out.writeInt(keys.size());
-        keys.forEach(s1 -> {
-            byte[] b2 = s1.getBytes();
-            try {
-                out.writeInt(b2.length);
-                out.write(b2);
-                out.flush();
-            } catch (IOException e){
-                System.out.println("Error!");
-            }
-        });
-
-        out.writeInt(6);
-        out.flush();
-
-        try {
-            Integer a = in.readInt();
-        } catch (EOFException e) {
-            System.out.println("End of Connection!");
-        }
+        Client c = new Client(12345, 3, 3);
+        System.out.println( c.register("Joao", "1234"));
+        System.out.println( c.login("Joao", "1234"));
+        System.out.println( c.put("hello", "world".getBytes()));
+        byte[] data = c.get("hello");
+        String s = new String(data);
+        System.out.println(s);
 
         Thread.sleep(10000);
 

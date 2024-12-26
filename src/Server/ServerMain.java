@@ -162,12 +162,7 @@ class ServerMain implements Runnable{
                 }
             });
 
-            if (keys.size() == map.size()) {
-                return map;
-            }
-            else {
-                return new HashMap<>();
-            }
+            return map;
         }
         finally {
             this.readers -= 1;
@@ -179,13 +174,17 @@ class ServerMain implements Runnable{
 
     protected void listen() throws Exception {
         this.running = true;
-        while(this.running){
-            Socket c = this.ss.accept();
-            ServerClient sc = new ServerClient(this, c);
-            this.sc.add(sc);
-            Thread t = new Thread(sc);
-            this.t.add(t);
-            t.start();
+        try {
+            while (this.running) {
+                Socket c = this.ss.accept();
+                ServerClient sc = new ServerClient(this, c);
+                this.sc.add(sc);
+                Thread t = new Thread(sc);
+                this.t.add(t);
+                t.start();
+            }
+        } catch (Exception e) {
+            System.out.println("Server CLosing!");
         }
         this.sc.forEach(sc -> {
             try {

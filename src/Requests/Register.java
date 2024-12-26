@@ -36,14 +36,10 @@ public class Register {
         String data = Username + '|' + Pass;
         byte[] byteData = data.getBytes();
 
-        System.out.println(data);
-
         out.writeInt(messageType);
         this.communication.send(byteData, out);
 
         int response = in.readInt();
-
-        System.out.println(response);
 
         if (response == 0) {
             return false;

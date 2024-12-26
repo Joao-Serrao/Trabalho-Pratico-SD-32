@@ -9,7 +9,7 @@ import java.io.DataOutputStream;
 public class Get {
     private final Communication communication;
     private ServerClientFacade facade;
-    private static final Integer messageType = 4;
+    private static final Integer messageType = 3;
 
     protected Get(ServerClientFacade facade) {
         this.communication = new Communication();

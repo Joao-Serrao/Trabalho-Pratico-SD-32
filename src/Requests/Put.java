@@ -24,7 +24,7 @@ public class Put {
 
     protected Boolean put(DataInputStream in) throws Exception{
         byte[] data = this.communication.receive(in);
-        int type = in.readInt();
+        //int type = in.readInt();
         byte[] value = this.communication.receive(in);
 
         if (data.length == 0 || value.length == 0) {

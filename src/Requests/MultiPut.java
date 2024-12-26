@@ -14,7 +14,7 @@ import java.util.Map;
 public class MultiPut {
     private final Communication communication;
     private ServerClientFacade facade;
-    private static final Integer messageType = 3;
+    private static final Integer messageType = 4;
 
     protected MultiPut(ServerClientFacade facade) {
         this.communication = new Communication();
@@ -26,7 +26,6 @@ public class MultiPut {
     }
 
     protected Boolean multiPut(DataInputStream in) throws Exception{
-        int i = in.readInt();
         int e = in.readInt();
 
         Map<String,byte[]> map = new HashMap<>();
