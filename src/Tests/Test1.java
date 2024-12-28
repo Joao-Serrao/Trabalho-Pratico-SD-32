@@ -213,5 +213,6 @@ public class Test1 {
         Boolean MultiPutResult6 = c.multiPut(map6);
         System.out.println(MultiPutResult6);
 
+
     }
 }

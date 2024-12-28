@@ -372,6 +372,8 @@ public class ClientStart {
             System.out.println("Insert Max Parallel:");
             int maxp = s.nextInt();
 
+            int testN = 0;
+
             Client c = new Client(port, maxr, maxp);
 
             while (true) {
@@ -426,7 +428,11 @@ public class ClientStart {
                         System.out.println("Closing...");
                         return;
                     case 10:
+                        testN +=1;
                         test(c);
+                        if (testN == 3){
+                            System.out.println("3 Tests Done!");
+                        }
                         break;
                 }
             }

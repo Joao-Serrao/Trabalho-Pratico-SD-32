@@ -1,5 +1,9 @@
 #!/usr/bin/expect
 
+set timeout 60  ;
+
+set start_time [clock seconds]
+
 # Start the program
 spawn java -jar ClientStart.jar
 
@@ -59,6 +63,21 @@ send "123\r"
 
 expect "Select Test:"
 send "3\r"
+
+expect "3 Tests Done!"
+send "9\r"   ;# Replace 'exit\r' with whatever ends the program cleanly if needed
+
+set start_time_formatted [clock format $start_time -format "%Y-%m-%d %H:%M:%S"]
+puts "Test started at: $start_time_formatted"
+
+# Calculate and display elapsed time
+
+set end_time [clock seconds]
+set end_time_formatted [clock format $end_time -format "%Y-%m-%d %H:%M:%S"]
+puts "Test ended at: $end_time_formatted"
+
+set elapsed_time [expr {$end_time - $start_time}]
+puts "Time to complete all tests: $elapsed_time seconds"
 
 # Interact with the program
 interact
