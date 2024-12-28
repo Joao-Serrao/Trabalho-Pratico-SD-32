@@ -21,7 +21,7 @@ public class MultiGet {
         this.communication = new Communication();
     }
 
-    protected Map<String, byte[]> multiGet(DataInputStream in) throws Exception{
+    protected Map<String, byte[]> multiGet(DataInputStream in, Boolean t) throws Exception{
         int e = in.readInt();
 
         List<String> keys = new ArrayList<>();
@@ -33,9 +33,15 @@ public class MultiGet {
 
             keys.add(new String(data));
         }
-        Set<String> key = new HashSet<>(keys);
 
-        return this.facade.multiGet(key);
+        if (t) {
+            Set<String> key = new HashSet<>(keys);
+
+            return this.facade.multiGet(key);
+        }
+        else {
+            return new HashMap<>(0);
+        }
     }
 
     protected Map<String,byte[]> send(DataOutputStream out, DataInputStream in, Set<String> keys) throws Exception{
@@ -50,7 +56,6 @@ public class MultiGet {
         this.communication.multiSend(data,out);
 
         int response = in.readInt();
-        System.out.println(response);
         if (response == 0) {
             return new HashMap<>(0);
         }

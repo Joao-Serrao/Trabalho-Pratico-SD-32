@@ -1,0 +1,16 @@
+#!/usr/bin/expect
+
+# Start the program
+spawn java -jar ServerStart.jar
+
+
+expect "Insert Port number:"
+send "12345\r"
+
+expect "Insert Max Sessions:"
+send "1\r"
+
+
+# Interact with the program
+interact
+

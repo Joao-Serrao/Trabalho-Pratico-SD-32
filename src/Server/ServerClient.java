@@ -29,6 +29,7 @@ class ServerClient implements Runnable {
         try {
             ServerClientFacade facade = new ServerClientFacade(this.server);
             Response response = new Response(facade);
+            Communication c = new Communication();
             while (running) {
                 int tag = this.inputStream.readInt();
                 System.out.println(tag);
@@ -43,6 +44,7 @@ class ServerClient implements Runnable {
                         break;
                     case 1:
                         if (this.aut) {
+                            c.receive(this.inputStream);
                             this.outputStream.writeInt(1);
                         } else {
                             Boolean logined = response.login(this.inputStream);
@@ -56,66 +58,63 @@ class ServerClient implements Runnable {
                         break;
                     case 2:
                         if (this.aut) {
-                            Boolean saved = response.put(this.inputStream);
+                            Boolean saved = response.put(this.inputStream, true);
                             if (!saved) {
                                 this.outputStream.writeInt(0);
                             } else {
                                 this.outputStream.writeInt(1);
                             }
                         } else {
+                            Boolean saved = response.put(this.inputStream, false);
                             this.outputStream.writeInt(0);
                         }
                         break;
                     case 3:
                         if (this.aut) {
-                            byte[] data = response.get(this.inputStream);
+                            byte[] data = response.get(this.inputStream, true);
                             if (data.length == 0) {
                                 this.outputStream.writeInt(0);
                             } else {
                                 this.outputStream.writeInt(1);
+                                c.send(data, this.outputStream);
                             }
-                            Communication c = new Communication();
-                            c.send(data, this.outputStream);
                         }
-                        this.outputStream.writeInt(0);
-                        Communication c = new Communication();
-                        c.send(new byte[0], this.outputStream);
+                        else {
+                            byte[] data = response.get(this.inputStream, false);
+                            this.outputStream.writeInt(0);
+                        }
                         break;
                     case 4:
                         if (this.aut) {
-                            boolean msaved = response.multiPut(this.inputStream);
-                            if (!msaved) {
-                                this.outputStream.writeInt(0);
-                            } else {
-                                this.outputStream.writeInt(1);
-                            }
+                            boolean msaved = response.multiPut(this.inputStream, true);
+                            this.outputStream.writeInt(1);
                         } else {
+                            boolean msaved = response.multiPut(this.inputStream, false);
                             this.outputStream.writeInt(0);
                         }
                         break;
                     case 5:
                         if (this.aut) {
-                            Map<String, byte[]> map = response.multiGet(this.inputStream);
+                            Map<String, byte[]> map = response.multiGet(this.inputStream, true);
                             if (map.isEmpty()) {
                                 this.outputStream.writeInt(0);
                             } else {
                                 this.outputStream.writeInt(1);
+                                List<byte[]> data = new ArrayList<>();
+
+                                map.forEach((key, value) -> {
+                                    byte[] byteData = key.getBytes();
+                                    data.add(byteData);
+                                    data.add(value);
+                                });
+
+
+                                this.outputStream.writeInt(map.size());
+                                c.multiSend(data, this.outputStream);
                             }
-                            this.outputStream.flush();
-                            Communication c1 = new Communication();
-                            List<byte[]> data = new ArrayList<>();
-
-                            map.forEach((key, value) -> {
-                                byte[] byteData = key.getBytes();
-                                data.add(byteData);
-                                data.add(value);
-                            });
-
-
-                            this.outputStream.writeInt(map.size());
-                            c1.multiSend(data, this.outputStream);
 
                         } else {
+                            Map<String, byte[]> map = response.multiGet(this.inputStream, false);
                             this.outputStream.writeInt(0);
                         }
                         break;
@@ -124,6 +123,21 @@ class ServerClient implements Runnable {
                             this.server.logout();
                         }
                         this.close();
+                        break;
+                    case 7:
+                        if (this.aut) {
+                            byte[] data = response.whenGet(this.inputStream, true);
+                            if (data.length == 0) {
+                                this.outputStream.writeInt(0);
+                            } else {
+                                this.outputStream.writeInt(1);
+                                c.send(data, this.outputStream);
+                            }
+                        }
+                        else {
+                            byte[] data = response.whenGet(this.inputStream, false);
+                            this.outputStream.writeInt(0);
+                        }
                         break;
 
                 }
@@ -134,12 +148,12 @@ class ServerClient implements Runnable {
             }
             this.close();
         }
-        this.c.close();
 
     }
 
     protected void close() throws Exception{
         this.running = false;
+        this.c.close();
     }
 
     @Override

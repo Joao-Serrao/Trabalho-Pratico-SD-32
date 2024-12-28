@@ -12,6 +12,7 @@ public class Response {
     private MultiPut multiPut;
     private Get get;
     private MultiGet multiGet;
+    private whenGet whenGet;
 
     public Response(ServerClientFacade facade) {
         this.register = new Register(facade);
@@ -20,6 +21,7 @@ public class Response {
         this.multiPut = new MultiPut(facade);
         this.get = new Get(facade);
         this.multiGet = new MultiGet(facade);
+        this.whenGet = new whenGet(facade);
     }
 
     public Boolean registerClient(DataInputStream in) throws Exception{
@@ -30,19 +32,23 @@ public class Response {
         return this.login.login(in);
     }
 
-    public Boolean put(DataInputStream in) throws Exception{
-        return this.put.put(in);
+    public Boolean put(DataInputStream in, Boolean t) throws Exception{
+        return this.put.put(in,t);
     }
 
-    public Boolean multiPut(DataInputStream in) throws Exception{
-        return this.multiPut.multiPut(in);
+    public Boolean multiPut(DataInputStream in, Boolean t) throws Exception{
+        return this.multiPut.multiPut(in, t);
     }
 
-    public byte[] get(DataInputStream in) throws Exception{
-        return this.get.get(in);
+    public byte[] get(DataInputStream in, Boolean t) throws Exception{
+        return this.get.get(in, t);
     }
 
-    public Map<String, byte[]> multiGet(DataInputStream in) throws Exception{
-        return this.multiGet.multiGet(in);
+    public Map<String, byte[]> multiGet(DataInputStream in, Boolean t) throws Exception{
+        return this.multiGet.multiGet(in, t);
+    }
+
+    public byte[] whenGet(DataInputStream in, Boolean t) throws Exception{
+        return this.whenGet.whenGet(in, t);
     }
 }

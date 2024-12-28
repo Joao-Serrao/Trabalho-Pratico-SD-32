@@ -25,22 +25,24 @@ public class MultiPut {
         this.communication = new Communication();
     }
 
-    protected Boolean multiPut(DataInputStream in) throws Exception{
+    protected Boolean multiPut(DataInputStream in, Boolean t) throws Exception{
         int e = in.readInt();
 
         Map<String,byte[]> map = new HashMap<>();
         for (int j =0 ; j < e; j++){
             byte[] data = this.communication.receive(in);
             byte[] value = this.communication.receive(in);
-            if (data.length == 0 || value.length == 0) {
-                return false;
-            }
             String key = new String(data);
             map.put(key,value);
         }
 
-        this.facade.multiPut(map);
-        return true;
+        if (t) {
+            this.facade.multiPut(map);
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     protected Boolean send(DataOutputStream out, DataInputStream in, Map<String,byte[]> pairs) throws Exception{
@@ -52,7 +54,7 @@ public class MultiPut {
             data.add(value);
         });
 
-        out.writeInt(4);
+        out.writeInt(messageType);
         out.writeInt(pairs.size());
         this.communication.multiSend(data,out);
 

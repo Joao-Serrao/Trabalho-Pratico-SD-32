@@ -20,14 +20,19 @@ public class Get {
         this.communication = new Communication();
     }
 
-    protected byte[] get(DataInputStream in) throws Exception{
+    protected byte[] get(DataInputStream in, Boolean t) throws Exception{
         byte[] data = this.communication.receive(in);
         if (data.length == 0) {
             return data;
         }
 
+        if (t) {
         String stringData = new String(data);
-        return this.facade.get(stringData);
+            return this.facade.get(stringData);
+        }
+        else {
+            return new byte[0];
+        }
     }
 
     protected byte[] send(DataOutputStream out, DataInputStream in, String key) throws Exception{

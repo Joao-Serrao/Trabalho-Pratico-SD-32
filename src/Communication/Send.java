@@ -7,7 +7,6 @@ import java.util.List;
 
 public class Send {
     protected void send(byte[] data, DataOutputStream out) throws Exception {
-        Thread.sleep(20);
         out.writeInt(data.length);
         out.write(data);
         out.flush();

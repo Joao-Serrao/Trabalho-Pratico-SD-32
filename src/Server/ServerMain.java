@@ -102,9 +102,9 @@ class ServerMain implements Runnable{
             this.storage.put(key,value);
         }
         finally {
-            this.writers -= 1;
+            this.writers = 0;
             this.writeCond.signal();
-            this.readCond.signal();
+            this.readCond.signalAll();
             this.lock.unlock();
         }
     }
@@ -119,9 +119,9 @@ class ServerMain implements Runnable{
             this.storage.putAll(pairs);
         }
         finally {
-            this.writers -= 1;
+            this.writers = 0;
             this.writeCond.signal();
-            this.readCond.signal();
+            this.readCond.signalAll();
             this.lock.unlock();
         }
     }
@@ -142,7 +142,7 @@ class ServerMain implements Runnable{
         }
         finally {
             this.readers -= 1;
-            this.readCond.signal();
+            this.readCond.signalAll();
             this.writeCond.signal();
             this.lock.unlock();
         }
@@ -160,12 +160,37 @@ class ServerMain implements Runnable{
                 if (this.storage.containsKey(s)) {
                     map.put(s,this.storage.get(s));
                 }
+                else {
+                    map.put(s, new byte[0] );
+                }
             });
 
             return map;
         }
         finally {
             this.readers -= 1;
+            this.readCond.signalAll();
+            this.writeCond.signal();
+            this.lock.unlock();
+        }
+    }
+
+    protected byte[] getWhen(String key, String keyCond, byte[] valueCond) throws Exception{
+        this.lock.lock();
+        try {
+            while (this.writers != 0 || !Arrays.equals(this.storage.get(keyCond), valueCond)) {
+                this.readCond.await();
+            }
+            this.readers += 1;
+            if (this.storage.containsKey(key)) {
+                return this.storage.get(key);
+            }
+            else {
+                return new byte[0];
+            }
+        }
+        finally {
+            this.readers -=1;
             this.readCond.signal();
             this.writeCond.signal();
             this.lock.unlock();
@@ -189,17 +214,16 @@ class ServerMain implements Runnable{
         this.sc.forEach(sc -> {
             try {
                 sc.close();
+                System.out.println("Closing Connection");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
-        this.t.forEach(t ->{
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
+
+    }
+
+    protected void removeSC(ServerClient sc) throws Exception{
+        this.sc.remove(sc);
     }
 
     protected void CloseServer() throws IOException {
@@ -220,15 +244,4 @@ class ServerMain implements Runnable{
         return this.ss;
     }
 
-    public static void main(String[] args) throws Exception {
-         if(args.length != 2) {
-             System.out.print("Invalid number of input! Type: ServerPort MaxSessions");
-             return;
-         }
-         int port = Integer.parseInt(args[0]);
-         int S = Integer.parseInt(args[1]);
-
-         ServerFacade facade = new ServerFacade(port,S);
-         facade.listen();
-    }
 }

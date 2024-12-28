@@ -12,4 +12,5 @@ public interface IRequest {
     public Boolean requestMultiPut(DataOutputStream out, DataInputStream in, Map<String,byte[]> pairs) throws Exception;
     public byte[] requestGet(DataOutputStream out, DataInputStream in, String key) throws Exception;
     public Map<String, byte[]> requestMultiGet(DataOutputStream out, DataInputStream in, Set<String> keys) throws Exception;
+    public byte[] requestWhenGet(DataOutputStream out, DataInputStream in, String key, String keyCond, byte[] value) throws Exception;
 }

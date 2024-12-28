@@ -14,6 +14,7 @@ public class Request implements IRequest {
     private MultiPut multiPut = new MultiPut();
     private Get get = new Get();
     private MultiGet multiGet = new MultiGet();
+    private whenGet whenGet = new whenGet();
 
     @Override
     public Boolean requestRegister(DataOutputStream out, DataInputStream in, String Username, String Pass) throws Exception{
@@ -43,5 +44,10 @@ public class Request implements IRequest {
     @Override
     public Map<String, byte[]> requestMultiGet(DataOutputStream out, DataInputStream in, Set<String> keys) throws Exception{
         return this.multiGet.send(out,in,keys);
+    }
+
+    @Override
+    public byte[] requestWhenGet(DataOutputStream out, DataInputStream in, String key, String keyCond, byte[] value) throws Exception{
+        return this.whenGet.send(out, in, key, keyCond, value);
     }
 }

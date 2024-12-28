@@ -22,7 +22,7 @@ public class Put {
         this.communication = new Communication();
     }
 
-    protected Boolean put(DataInputStream in) throws Exception{
+    protected Boolean put(DataInputStream in, Boolean t) throws Exception{
         byte[] data = this.communication.receive(in);
         //int type = in.readInt();
         byte[] value = this.communication.receive(in);
@@ -31,10 +31,15 @@ public class Put {
             return false;
         }
 
+        if (t) {
         String stringData = new String(data);
-        this.facade.put(stringData, value);
+            this.facade.put(stringData, value);
 
-        return true;
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     protected Boolean send(DataOutputStream out, DataInputStream in, String Key, byte[] value) throws Exception{

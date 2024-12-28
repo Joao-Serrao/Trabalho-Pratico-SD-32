@@ -1,0 +1,57 @@
+#!/usr/bin/expect
+
+# Start the program
+spawn java -jar ClientStart.jar
+
+
+expect "Insert Port number:"
+send "12345\r"
+
+expect "Insert Max Requests:"
+send "5\r"
+
+expect "Insert Max Parallel:"
+send "1\r"
+
+
+expect "Select Request:"
+send "10\r"
+
+expect "Insert Username:"
+send "TestClient\r"
+
+expect "Insert Password:"
+send "123\r"
+
+expect "Select Test:"
+send "2\r"
+
+expect "Select Request:"
+send "10\r"
+
+expect "Insert Username:"
+send "TestClient\r"
+
+expect "Insert Password:"
+send "123\r"
+
+expect "Select Test:"
+send "3\r"
+
+expect "Select Request:"
+send "10\r"
+
+expect "Insert Username:"
+send "TestClient\r"
+
+expect "Insert Password:"
+send "123\r"
+
+expect "Select Test:"
+send "1\r"
+
+
+
+# Interact with the program
+interact
+

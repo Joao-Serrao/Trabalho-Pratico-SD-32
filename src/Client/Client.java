@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class Client {
     private Socket socket;
-    private int port;
+    private final int port;
     private DataOutputStream out;
     private DataInputStream in;
     private Integer maxRequests;
@@ -21,8 +21,8 @@ public class Client {
     private Integer paralel = 0;
     private Integer maxParalel;
     private Request request = new Request();
-    public Boolean aut = false;
-    public Boolean reg = false;
+    private Boolean aut = false;
+    private Boolean reg = false;
 
     public Client(int port, int mR, int mP) throws Exception{
         this.socket = new Socket("localhost",port);
@@ -35,8 +35,7 @@ public class Client {
 
     public Boolean register(String Username, String Pass) throws Exception{
         if (this.socket.isClosed()) {
-            Socket s = new Socket("localhost", this.port);
-            this.socket = s;
+            this.socket = new Socket("localhost", this.port);
             this.out = new DataOutputStream(this.socket.getOutputStream());
             this.in = new DataInputStream(this.socket.getInputStream());
         }
@@ -45,12 +44,18 @@ public class Client {
 
     public Boolean login(String Username, String Pass) throws Exception{
         if (this.socket.isClosed()) {
-            Socket s = new Socket("localhost", this.port);
-            this.socket = s;
+            this.socket = new Socket("localhost", this.port);
             this.out = new DataOutputStream(this.socket.getOutputStream());
             this.in = new DataInputStream(this.socket.getInputStream());
         }
-        return this.request.requestLogin(this.out, this.in, Username, Pass);
+        try {
+            return this.request.requestLogin(this.out, this.in, Username, Pass);
+        } catch (Exception e) {
+            this.socket = new Socket("localhost", this.port);
+            this.out = new DataOutputStream(this.socket.getOutputStream());
+            this.in = new DataInputStream(this.socket.getInputStream());
+            return this.request.requestLogin(this.out, this.in, Username, Pass);
+        }
     }
 
     public Boolean put(String Key, byte[] value) throws Exception{
@@ -84,12 +89,47 @@ public class Client {
     }
 
     public Map<String,byte[]> multiGet(Set<String> keys) throws Exception{
+        this.requests += 1;
         Map<String, byte[]> result = this.request.requestMultiGet(this.out, this.in, keys);
         if (this.requests == this.maxRequests) {
             this.logout();
             this.requests = 0;
         }
         return result;
+    }
+
+    public byte[] whenGet(String key, String keyCond, byte[] value) throws Exception{
+        this.requests += 1;
+        byte[] result = this.request.requestWhenGet(this.out, this.in, key, keyCond, value);
+        if (this.requests == this.maxRequests) {
+            this.logout();
+            this.requests = 0;
+        }
+        return result;
+    }
+
+    public Boolean getAut(){
+        return this.aut;
+    }
+
+    public void setAut(Boolean t){
+        this.aut = t;
+    }
+
+    public Boolean getReg() {
+        return this.reg;
+    }
+
+    public void setReg(Boolean t) {
+        this.reg = t;
+    }
+
+    public void setMaxRequests(int r){
+        this.maxRequests = r;
+    }
+
+    public void setRequest(int r){
+        this.requests = r;
     }
 
     public void logout() throws Exception{
@@ -108,17 +148,4 @@ public class Client {
         this.aut = false;
     }
 
-    public static void main(String[] args) throws Exception {
-        Client c = new Client(12345, 3, 3);
-        System.out.println( c.register("Joao", "1234"));
-        System.out.println( c.login("Joao", "1234"));
-        System.out.println( c.put("hello", "world".getBytes()));
-        byte[] data = c.get("hello");
-        String s = new String(data);
-        System.out.println(s);
-
-        Thread.sleep(10000);
-
-
-    }
 }

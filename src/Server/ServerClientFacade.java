@@ -32,4 +32,8 @@ public class ServerClientFacade {
     public Map<String, byte[]> multiGet(Set<String> keys) throws Exception {
         return server.multiGet(keys);
     }
+
+    public byte[] whenGet(String key, String keyCond, byte[] value) throws Exception{
+        return server.getWhen(key, keyCond, value);
+    }
 }
